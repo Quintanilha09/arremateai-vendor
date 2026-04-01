@@ -33,7 +33,7 @@ public class DocumentStorageService {
     public void init() throws IOException {
         storageRoot = Paths.get(storagePath).toAbsolutePath().normalize();
         Files.createDirectories(storageRoot);
-        log.info("Document storage initialized at: {}", storageRoot);
+        log.info("Document storage initialized successfully");
     }
 
     public String salvarDocumento(MultipartFile arquivo) {
@@ -55,7 +55,7 @@ public class DocumentStorageService {
         Path destino = storageRoot.resolve(filename);
         try {
             Files.copy(arquivo.getInputStream(), destino);
-            log.info("Documento salvo: {}", destino);
+            log.debug("Documento salvo: {}", filename);
             return baseUrl + "/api/vendedores/documentos/arquivo/" + filename;
         } catch (IOException e) {
             log.error("Erro ao salvar documento: {}", e.getMessage(), e);

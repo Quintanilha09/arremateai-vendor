@@ -17,6 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -27,6 +28,9 @@ import java.util.UUID;
 public class VendedorController {
 
     private final VendedorService vendedorService;
+
+    @org.springframework.beans.factory.annotation.Value("${app.vendor.storage-location:./uploads/documentos}")
+    private String storagePath;
 
     @PostMapping("/registrar")
     public ResponseEntity<Map<String, String>> registrar(
@@ -72,7 +76,11 @@ public class VendedorController {
 
     @GetMapping("/documentos/arquivo/{filename:.+}")
     public ResponseEntity<Resource> servirDocumento(@PathVariable String filename) {
-        Path filePath = Path.of("./uploads/documentos", filename);
+        Path basePath = Paths.get(storagePath).toAbsolutePath().normalize();
+        Path filePath = basePath.resolve(filename).toAbsolutePath().normalize();
+        if (!filePath.startsWith(basePath)) {
+            return ResponseEntity.status(403).build();
+        }
         FileSystemResource resource = new FileSystemResource(filePath);
         if (!resource.exists()) {
             return ResponseEntity.notFound().build();
@@ -83,11 +91,12 @@ public class VendedorController {
         } catch (Exception e) {
             contentType = MediaType.APPLICATION_OCTET_STREAM_VALUE;
         }
+        String safeFilename = filename.replaceAll("[^a-zA-Z0-9._-]", "_");
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(
                         contentType != null ? contentType : MediaType.APPLICATION_OCTET_STREAM_VALUE))
                 .header(HttpHeaders.CONTENT_DISPOSITION,
-                        "inline; filename=\"" + resource.getFilename() + "\"")
+                        "inline; filename=\"" + safeFilename + "\"")
                 .body(resource);
     }
 }
