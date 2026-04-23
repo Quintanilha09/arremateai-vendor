@@ -7,9 +7,9 @@ spring:
 
   # Database - shared PostgreSQL during migration
   datasource:
-    url: jdbc:postgresql://localhost:5433/arremateai
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5433}/${DB_NAME:arremateai}
     username: ${DB_USERNAME:arremateai}
-    password: ${DB_PASSWORD:arremateai123}
+    password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
 
   # JPA
@@ -53,7 +53,7 @@ app:
   admin:
     email: ${ADMIN_EMAIL:admin@arremateai.com}
   frontend:
-    url: http://localhost:3000
+    url: ${FRONTEND_URL:http://localhost:3000}
 
 # Actuator
 management:
@@ -68,4 +68,4 @@ management:
 # Gateway security
 gateway:
   secret-header: X-Gateway-Secret
-  secret-value: ${GATEWAY_SECRET:arremateai-gateway-secret-2024}
+  secret-value: ${GATEWAY_SECRET}
