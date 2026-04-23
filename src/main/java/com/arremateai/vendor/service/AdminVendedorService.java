@@ -1,9 +1,18 @@
 package com.arremateai.vendor.service;
 
-import com.arremateai.vendor.domain.*;
-import com.arremateai.vendor.dto.*;
+import com.arremateai.vendor.domain.DocumentoVendedor;
+import com.arremateai.vendor.domain.HistoricoStatusVendedor;
+import com.arremateai.vendor.domain.StatusDocumento;
+import com.arremateai.vendor.domain.StatusVendedor;
+import com.arremateai.vendor.domain.TipoUsuario;
+import com.arremateai.vendor.domain.Usuario;
+import com.arremateai.vendor.dto.AtualizarStatusDocumentoRequest;
+import com.arremateai.vendor.dto.DocumentoVendedorResponse;
+import com.arremateai.vendor.dto.VendedorResponse;
 import com.arremateai.vendor.exception.BusinessException;
-import com.arremateai.vendor.repository.*;
+import com.arremateai.vendor.repository.DocumentoVendedorRepository;
+import com.arremateai.vendor.repository.HistoricoStatusVendedorRepository;
+import com.arremateai.vendor.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
