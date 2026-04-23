@@ -7,12 +7,16 @@ import com.arremateai.vendor.service.VendedorService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -23,6 +27,9 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class VendedorControllerTest {
+
+    @TempDir
+    Path diretorioTemp;
 
     @Mock
     private VendedorService vendedorService;
@@ -164,5 +171,20 @@ class VendedorControllerTest {
         var resultado = vendedorController.servirDocumento("../../etc/passwd");
 
         assertThat(resultado.getStatusCode().value()).isIn(403, 404);
+    }
+
+    @Test
+    @DisplayName("Deve retornar 200 e recurso quando arquivo existe")
+    void deveRetornar200ERecursoQuandoArquivoExiste() throws IOException {
+        var arquivo = Files.createTempFile(diretorioTemp, "documento", ".pdf");
+        Files.writeString(arquivo, "conteudo simulado do pdf");
+        ReflectionTestUtils.setField(vendedorController, "storagePath", diretorioTemp.toString());
+
+        var resultado = vendedorController.servirDocumento(arquivo.getFileName().toString());
+
+        assertThat(resultado.getStatusCode().value()).isEqualTo(200);
+        assertThat(resultado.getBody()).isNotNull();
+        assertThat(resultado.getHeaders().getContentDisposition().toString())
+                .contains("inline");
     }
 }
