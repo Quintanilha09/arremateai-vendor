@@ -17,4 +17,6 @@ public interface DocumentoVendedorRepository extends JpaRepository<DocumentoVend
     boolean existsByUsuarioIdAndTipo(UUID usuarioId, TipoDocumento tipo);
 
     long countByUsuarioIdAndStatus(UUID usuarioId, StatusDocumento status);
+
+    boolean existsByUsuarioIdAndUrlContaining(UUID usuarioId, String url);
 }

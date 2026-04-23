@@ -1,5 +1,6 @@
 package com.arremateai.vendor.controller;
 
+import com.arremateai.vendor.config.RateLimitConfig;
 import com.arremateai.vendor.domain.TipoDocumento;
 import com.arremateai.vendor.dto.CadastroVendedorRequest;
 import com.arremateai.vendor.dto.DocumentoVendedorResponse;
@@ -10,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -28,6 +30,7 @@ import java.util.UUID;
 public class VendedorController {
 
     private final VendedorService vendedorService;
+    private final RateLimitConfig rateLimitConfig;
 
     @org.springframework.beans.factory.annotation.Value("${app.vendor.storage-location:./uploads/documentos}")
     private String storagePath;
@@ -42,6 +45,9 @@ public class VendedorController {
     public ResponseEntity<VendedorResponse> verificarEmailCorporativo(
             @RequestParam String emailCorporativo,
             @RequestParam String codigo) {
+        if (!rateLimitConfig.tentativaPermitida("verificar:" + emailCorporativo)) {
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).build();
+        }
         return ResponseEntity.ok(
                 vendedorService.verificarEmailCorporativo(emailCorporativo, codigo));
     }
@@ -49,6 +55,9 @@ public class VendedorController {
     @PostMapping("/reenviar-codigo")
     public ResponseEntity<Map<String, String>> reenviarCodigo(
             @RequestParam String emailCorporativo) {
+        if (!rateLimitConfig.tentativaPermitida("reenviar:" + emailCorporativo)) {
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).build();
+        }
         vendedorService.reenviarCodigoVerificacao(emailCorporativo);
         return ResponseEntity.ok(Map.of("message", "Código reenviado com sucesso."));
     }
@@ -75,12 +84,33 @@ public class VendedorController {
     }
 
     @GetMapping("/documentos/arquivo/{filename:.+}")
-    public ResponseEntity<Resource> servirDocumento(@PathVariable String filename) {
+    public ResponseEntity<Resource> servirDocumento(
+            @PathVariable String filename,
+            @RequestHeader(value = "X-User-Id", required = false) String userId,
+            @RequestHeader(value = "X-User-Role", required = false) String userRole) {
+
+        if (userId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
         Path basePath = Paths.get(storagePath).toAbsolutePath().normalize();
         Path filePath = basePath.resolve(filename).toAbsolutePath().normalize();
         if (!filePath.startsWith(basePath)) {
-            return ResponseEntity.status(403).build();
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
+
+        if (!"ADMIN".equalsIgnoreCase(userRole)) {
+            UUID userUuid;
+            try {
+                userUuid = UUID.fromString(userId);
+            } catch (IllegalArgumentException e) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
+            if (!vendedorService.verificarAcessoArquivo(filename, userUuid)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
+        }
+
         FileSystemResource resource = new FileSystemResource(filePath);
         if (!resource.exists()) {
             return ResponseEntity.notFound().build();

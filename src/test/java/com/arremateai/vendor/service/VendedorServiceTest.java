@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.arremateai.vendor.domain.*;
 import com.arremateai.vendor.dto.CadastroVendedorRequest;
+import com.arremateai.vendor.dto.CadastroVendedorTemp;
 import com.arremateai.vendor.dto.CnpjResponseDTO;
 import com.arremateai.vendor.dto.DocumentoVendedorResponse;
 import com.arremateai.vendor.dto.VendedorResponse;
@@ -137,7 +138,8 @@ class VendedorServiceTest {
         when(usuarioRepository.existsByEmail(EMAIL_PADRAO)).thenReturn(false);
         when(usuarioRepository.findByEmailCorporativo(EMAIL_CORP)).thenReturn(Optional.empty());
         when(cnpjValidationService.validarCnpj(CNPJ_PADRAO)).thenReturn(new CnpjResponseDTO());
-        when(objectMapper.writeValueAsString(request)).thenReturn("{\"nome\":\"Empresa\"}");
+        when(passwordEncoder.encode(SENHA_PADRAO)).thenReturn("encodedPassword");
+        when(objectMapper.writeValueAsString(any())).thenReturn("{\"nome\":\"Empresa\"}");
 
         var resultado = vendedorService.registrarVendedor(request);
 
@@ -192,7 +194,8 @@ class VendedorServiceTest {
         when(usuarioRepository.existsByEmail(EMAIL_PADRAO)).thenReturn(false);
         when(usuarioRepository.findByEmailCorporativo(EMAIL_CORP)).thenReturn(Optional.empty());
         when(cnpjValidationService.validarCnpj(CNPJ_PADRAO)).thenReturn(new CnpjResponseDTO());
-        when(objectMapper.writeValueAsString(request)).thenThrow(new JsonProcessingException("Erro") {});
+        when(passwordEncoder.encode(SENHA_PADRAO)).thenReturn("encodedPassword");
+        when(objectMapper.writeValueAsString(any())).thenThrow(new JsonProcessingException("Erro") {});
 
         assertThatThrownBy(() -> vendedorService.registrarVendedor(request))
                 .isInstanceOf(BusinessException.class)
@@ -221,9 +224,20 @@ class VendedorServiceTest {
         var cv = criarCodigoVerificacao(dadosJson);
         var vendedorSalvo = criarVendedorPadrao();
 
+        var tempCadastro = CadastroVendedorTemp.builder()
+                .nome("Empresa Teste")
+                .email(EMAIL_PADRAO)
+                .senhaHash("encodedPassword")
+                .cpf("12345678901")
+                .telefone("11999999999")
+                .cnpj(CNPJ_PADRAO)
+                .razaoSocial("Empresa Teste LTDA")
+                .nomeFantasia("Empresa Teste")
+                .inscricaoEstadual("123456789")
+                .emailCorporativo(EMAIL_CORP)
+                .build();
         when(verificacaoService.verificarCodigo(EMAIL_CORP, "123456")).thenReturn(cv);
-        when(objectMapper.readValue(dadosJson, CadastroVendedorRequest.class)).thenReturn(request);
-        when(passwordEncoder.encode(SENHA_PADRAO)).thenReturn("encodedPassword");
+        when(objectMapper.readValue(dadosJson, CadastroVendedorTemp.class)).thenReturn(tempCadastro);
         when(usuarioRepository.save(any(Usuario.class))).thenReturn(vendedorSalvo);
 
         var resultado = vendedorService.verificarEmailCorporativo(EMAIL_CORP, "123456");
@@ -249,7 +263,7 @@ class VendedorServiceTest {
     void deveLancarExcecaoQuandoErroAoDeserializarDadosDoCadastro() throws Exception {
         var cv = criarCodigoVerificacao("json-invalido");
         when(verificacaoService.verificarCodigo(EMAIL_CORP, "123456")).thenReturn(cv);
-        when(objectMapper.readValue("json-invalido", CadastroVendedorRequest.class))
+        when(objectMapper.readValue("json-invalido", CadastroVendedorTemp.class))
                 .thenThrow(new JsonProcessingException("Erro parse") {});
 
         assertThatThrownBy(() -> vendedorService.verificarEmailCorporativo(EMAIL_CORP, "123456"))

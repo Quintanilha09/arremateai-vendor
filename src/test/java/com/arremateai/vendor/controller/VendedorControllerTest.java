@@ -1,5 +1,6 @@
 package com.arremateai.vendor.controller;
 
+import com.arremateai.vendor.config.RateLimitConfig;
 import com.arremateai.vendor.domain.StatusVendedor;
 import com.arremateai.vendor.domain.TipoDocumento;
 import com.arremateai.vendor.dto.*;
@@ -33,6 +34,9 @@ class VendedorControllerTest {
 
     @Mock
     private VendedorService vendedorService;
+
+    @Mock
+    private RateLimitConfig rateLimitConfig;
 
     @InjectMocks
     private VendedorController vendedorController;
@@ -80,6 +84,7 @@ class VendedorControllerTest {
     @Test
     @DisplayName("Deve verificar email corporativo com sucesso")
     void deveVerificarEmailCorporativoComSucesso() {
+        when(rateLimitConfig.tentativaPermitida(any())).thenReturn(true);
         when(vendedorService.verificarEmailCorporativo("contato@empresa.com", "123456"))
                 .thenReturn(criarVendedorResponse());
 
@@ -89,11 +94,23 @@ class VendedorControllerTest {
         assertThat(resultado.getBody()).isNotNull();
     }
 
+    @Test
+    @DisplayName("Deve retornar 429 quando rate limit excedido na verificacao")
+    void deveRetornar429QuandoRateLimitExcedido() {
+        when(rateLimitConfig.tentativaPermitida(any())).thenReturn(false);
+
+        var resultado = vendedorController.verificarEmailCorporativo("contato@empresa.com", "123456");
+
+        assertThat(resultado.getStatusCode().value()).isEqualTo(429);
+        verifyNoInteractions(vendedorService);
+    }
+
     // ===== reenviarCodigo =====
 
     @Test
     @DisplayName("Deve reenviar código de verificação")
     void deveReenviarCodigoDeVerificacao() {
+        when(rateLimitConfig.tentativaPermitida(any())).thenReturn(true);
         doNothing().when(vendedorService).reenviarCodigoVerificacao("contato@empresa.com");
 
         var resultado = vendedorController.reenviarCodigo("contato@empresa.com");
@@ -154,13 +171,13 @@ class VendedorControllerTest {
     // ===== servirDocumento =====
 
     @Test
-    @DisplayName("Deve retornar 404 quando documento não existe")
-    void deveRetornar404QuandoDocumentoNaoExiste() {
+    @DisplayName("Deve retornar 401 quando userId nao fornecido")
+    void deveRetornar401QuandoUserIdNaoFornecido() {
         ReflectionTestUtils.setField(vendedorController, "storagePath", System.getProperty("java.io.tmpdir"));
 
-        var resultado = vendedorController.servirDocumento("arquivo-inexistente.pdf");
+        var resultado = vendedorController.servirDocumento("arquivo.pdf", null, null);
 
-        assertThat(resultado.getStatusCode().value()).isEqualTo(404);
+        assertThat(resultado.getStatusCode().value()).isEqualTo(401);
     }
 
     @Test
@@ -168,23 +185,34 @@ class VendedorControllerTest {
     void deveRetornar403ParaPathTraversal() {
         ReflectionTestUtils.setField(vendedorController, "storagePath", System.getProperty("java.io.tmpdir"));
 
-        var resultado = vendedorController.servirDocumento("../../etc/passwd");
+        var resultado = vendedorController.servirDocumento("../../etc/passwd", USER_ID_PADRAO, "ADMIN");
 
         assertThat(resultado.getStatusCode().value()).isIn(403, 404);
     }
 
     @Test
-    @DisplayName("Deve retornar 200 e recurso quando arquivo existe")
+    @DisplayName("Deve retornar 200 e recurso quando arquivo existe e usuario e admin")
     void deveRetornar200ERecursoQuandoArquivoExiste() throws IOException {
         var arquivo = Files.createTempFile(diretorioTemp, "documento", ".pdf");
         Files.writeString(arquivo, "conteudo simulado do pdf");
         ReflectionTestUtils.setField(vendedorController, "storagePath", diretorioTemp.toString());
 
-        var resultado = vendedorController.servirDocumento(arquivo.getFileName().toString());
+        var resultado = vendedorController.servirDocumento(arquivo.getFileName().toString(), USER_ID_PADRAO, "ADMIN");
 
         assertThat(resultado.getStatusCode().value()).isEqualTo(200);
         assertThat(resultado.getBody()).isNotNull();
         assertThat(resultado.getHeaders().getContentDisposition().toString())
                 .contains("inline");
+    }
+
+    @Test
+    @DisplayName("Deve retornar 404 quando documento nao existe e vendedor tem acesso")
+    void deveRetornar404QuandoDocumentoNaoExiste() {
+        ReflectionTestUtils.setField(vendedorController, "storagePath", System.getProperty("java.io.tmpdir"));
+        when(vendedorService.verificarAcessoArquivo(any(), any())).thenReturn(true);
+
+        var resultado = vendedorController.servirDocumento("arquivo-inexistente.pdf", USER_ID_PADRAO, "VENDEDOR");
+
+        assertThat(resultado.getStatusCode().value()).isEqualTo(404);
     }
 }

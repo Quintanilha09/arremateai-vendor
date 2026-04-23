@@ -51,7 +51,19 @@ public class VendedorService {
         }
         cnpjValidationService.validarCnpj(request.getCnpj());
         try {
-            String dadosJson = objectMapper.writeValueAsString(request);
+            CadastroVendedorTemp dadosTemp = CadastroVendedorTemp.builder()
+                    .nome(request.getNome())
+                    .email(request.getEmail())
+                    .senhaHash(passwordEncoder.encode(request.getSenha()))
+                    .cpf(request.getCpf())
+                    .telefone(request.getTelefone())
+                    .cnpj(request.getCnpj())
+                    .razaoSocial(request.getRazaoSocial())
+                    .nomeFantasia(request.getNomeFantasia())
+                    .inscricaoEstadual(request.getInscricaoEstadual())
+                    .emailCorporativo(request.getEmailCorporativo())
+                    .build();
+            String dadosJson = objectMapper.writeValueAsString(dadosTemp);
             verificacaoService.enviarCodigoVerificacao(request.getEmailCorporativo(), dadosJson);
         } catch (BusinessException | IllegalArgumentException e) {
             throw e;
@@ -71,9 +83,9 @@ public class VendedorService {
         if (cv == null) {
             throw new BusinessException("Código de verificação inválido ou expirado");
         }
-        CadastroVendedorRequest cadastro;
+        CadastroVendedorTemp cadastro;
         try {
-            cadastro = objectMapper.readValue(cv.getDadosCadastro(), CadastroVendedorRequest.class);
+            cadastro = objectMapper.readValue(cv.getDadosCadastro(), CadastroVendedorTemp.class);
         } catch (Exception e) {
             log.error("Erro ao deserializar dados do cadastro", e);
             throw new BusinessException("Erro ao processar verificação. Realize o cadastro novamente.");
@@ -83,7 +95,7 @@ public class VendedorService {
         vendedor.setEmail(cadastro.getEmail());
         vendedor.setEmailCorporativo(cadastro.getEmailCorporativo());
         vendedor.setEmailCorporativoVerificado(true);
-        vendedor.setSenha(passwordEncoder.encode(cadastro.getSenha()));
+        vendedor.setSenha(cadastro.getSenhaHash());
         vendedor.setTelefone(cadastro.getTelefone());
         vendedor.setCpf(cadastro.getCpf());
         vendedor.setCnpj(cadastro.getCnpj());
@@ -220,5 +232,10 @@ public class VendedorService {
                 .analisadoEm(d.getAnalisadoEm())
                 .createdAt(d.getCreatedAt())
                 .build();
+    }
+
+    @Transactional(readOnly = true)
+    public boolean verificarAcessoArquivo(String filename, UUID usuarioId) {
+        return documentoRepository.existsByUsuarioIdAndUrlContaining(usuarioId, filename);
     }
 }
