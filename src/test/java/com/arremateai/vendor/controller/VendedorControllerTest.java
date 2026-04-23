@@ -3,7 +3,9 @@ package com.arremateai.vendor.controller;
 import com.arremateai.vendor.config.RateLimitConfig;
 import com.arremateai.vendor.domain.StatusVendedor;
 import com.arremateai.vendor.domain.TipoDocumento;
-import com.arremateai.vendor.dto.*;
+import com.arremateai.vendor.dto.CadastroVendedorRequest;
+import com.arremateai.vendor.dto.DocumentoVendedorResponse;
+import com.arremateai.vendor.dto.VendedorResponse;
 import com.arremateai.vendor.service.VendedorService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -23,8 +25,12 @@ import java.util.Map;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class VendedorControllerTest {

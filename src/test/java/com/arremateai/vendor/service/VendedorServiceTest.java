@@ -2,14 +2,22 @@ package com.arremateai.vendor.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.arremateai.vendor.domain.*;
+import com.arremateai.vendor.domain.CodigoVerificacao;
+import com.arremateai.vendor.domain.DocumentoVendedor;
+import com.arremateai.vendor.domain.HistoricoStatusVendedor;
+import com.arremateai.vendor.domain.StatusDocumento;
+import com.arremateai.vendor.domain.StatusVendedor;
+import com.arremateai.vendor.domain.TipoDocumento;
+import com.arremateai.vendor.domain.TipoUsuario;
+import com.arremateai.vendor.domain.Usuario;
 import com.arremateai.vendor.dto.CadastroVendedorRequest;
 import com.arremateai.vendor.dto.CadastroVendedorTemp;
 import com.arremateai.vendor.dto.CnpjResponseDTO;
-import com.arremateai.vendor.dto.DocumentoVendedorResponse;
-import com.arremateai.vendor.dto.VendedorResponse;
 import com.arremateai.vendor.exception.BusinessException;
-import com.arremateai.vendor.repository.*;
+import com.arremateai.vendor.repository.CodigoVerificacaoRepository;
+import com.arremateai.vendor.repository.DocumentoVendedorRepository;
+import com.arremateai.vendor.repository.HistoricoStatusVendedorRepository;
+import com.arremateai.vendor.repository.UsuarioRepository;
 import com.arremateai.vendor.validator.EmailCorporativoValidator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -26,8 +34,13 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class VendedorServiceTest {

@@ -1,11 +1,24 @@
 package com.arremateai.vendor.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.arremateai.vendor.domain.*;
-import com.arremateai.vendor.dto.*;
+import com.arremateai.vendor.domain.CodigoVerificacao;
+import com.arremateai.vendor.domain.DocumentoVendedor;
+import com.arremateai.vendor.domain.HistoricoStatusVendedor;
+import com.arremateai.vendor.domain.StatusDocumento;
+import com.arremateai.vendor.domain.StatusVendedor;
+import com.arremateai.vendor.domain.TipoDocumento;
+import com.arremateai.vendor.domain.TipoUsuario;
+import com.arremateai.vendor.domain.Usuario;
+import com.arremateai.vendor.dto.CadastroVendedorRequest;
+import com.arremateai.vendor.dto.CadastroVendedorTemp;
+import com.arremateai.vendor.dto.DocumentoVendedorResponse;
+import com.arremateai.vendor.dto.VendedorResponse;
 import com.arremateai.vendor.exception.BusinessException;
-import com.arremateai.vendor.repository.*;
+import com.arremateai.vendor.repository.CodigoVerificacaoRepository;
+import com.arremateai.vendor.repository.DocumentoVendedorRepository;
+import com.arremateai.vendor.repository.HistoricoStatusVendedorRepository;
+import com.arremateai.vendor.repository.UsuarioRepository;
 import com.arremateai.vendor.validator.EmailCorporativoValidator;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -13,7 +26,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;

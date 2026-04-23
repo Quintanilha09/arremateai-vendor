@@ -1,10 +1,18 @@
 package com.arremateai.vendor.service;
 
-import com.arremateai.vendor.domain.*;
+import com.arremateai.vendor.domain.DocumentoVendedor;
+import com.arremateai.vendor.domain.HistoricoStatusVendedor;
+import com.arremateai.vendor.domain.StatusDocumento;
+import com.arremateai.vendor.domain.StatusVendedor;
+import com.arremateai.vendor.domain.TipoDocumento;
+import com.arremateai.vendor.domain.TipoUsuario;
+import com.arremateai.vendor.domain.Usuario;
 import com.arremateai.vendor.dto.AtualizarStatusDocumentoRequest;
 import com.arremateai.vendor.dto.VendedorResponse;
 import com.arremateai.vendor.exception.BusinessException;
-import com.arremateai.vendor.repository.*;
+import com.arremateai.vendor.repository.DocumentoVendedorRepository;
+import com.arremateai.vendor.repository.HistoricoStatusVendedorRepository;
+import com.arremateai.vendor.repository.UsuarioRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -17,15 +25,15 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
-
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class AdminVendedorServiceTest {
 
