@@ -12,7 +12,7 @@
         <relativePath/>
     </parent>
 
-    <groupId>com.leilao</groupId>
+    <groupId>com.arremateai</groupId>
     <artifactId>arremateai-vendor</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>arremateai-vendor</name>
