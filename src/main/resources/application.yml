@@ -46,7 +46,7 @@ spring:
 app:
   vendor:
     storage-location: ./uploads/documentos
-    base-url: ${VENDOR_BASE_URL:http://localhost:8084}
+    base-url: ${VENDOR_BASE_URL:http://localhost:8083}
   2fa:
     code-expiration-minutes: 10
     from-email: ${EMAIL_USERNAME:noreply@arremateai.com}
