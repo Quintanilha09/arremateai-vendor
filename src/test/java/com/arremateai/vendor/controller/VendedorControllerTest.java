@@ -215,4 +215,16 @@ class VendedorControllerTest {
 
         assertThat(resultado.getStatusCode().value()).isEqualTo(404);
     }
+
+    @Test
+    @DisplayName("Deve retornar 403 quando vendedor nao eh dono do documento")
+    void deveRetornar403QuandoVendedorNaoEDono() {
+        ReflectionTestUtils.setField(vendedorController, "storagePath", System.getProperty("java.io.tmpdir"));
+        when(vendedorService.verificarAcessoArquivo(any(), any())).thenReturn(false);
+
+        var resultado = vendedorController.servirDocumento("arquivo.pdf", USER_ID_PADRAO, "VENDEDOR");
+
+        assertThat(resultado.getStatusCode().value()).isEqualTo(403);
+        verify(vendedorService).verificarAcessoArquivo(eq("arquivo.pdf"), eq(USER_UUID));
+    }
 }
