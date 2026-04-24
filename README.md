@@ -1,5 +1,7 @@
 # 🏢 ArremateAI - Vendor Service
 
+![CI](https://github.com/Quintanilha09/arremateai-vendor/actions/workflows/ci.yml/badge.svg)
+
 Microsserviço responsável pelo cadastro de vendedores Pessoa Jurídica (PJ), validação de CNPJ, workflow de documentos e processo de aprovação administrativa.
 
 ## 📋 Descrição
