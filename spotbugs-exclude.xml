@@ -26,6 +26,10 @@
     <Match>
         <Bug pattern="EI_EXPOSE_REP,EI_EXPOSE_REP2"/>
     </Match>
+    <!-- Text blocks em e-mails usam \n literal (quebra de linha consistente em SMTP); %n não se aplica -->
+    <Match>
+        <Bug pattern="VA_FORMAT_STRING_USES_NEWLINE"/>
+    </Match>
     <!-- Ignorar testes -->
     <Match>
         <Class name="~.*Test"/>
